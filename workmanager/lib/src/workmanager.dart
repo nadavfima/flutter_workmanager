@@ -274,38 +274,6 @@ class Workmanager {
         ),
       );
 
-  /// Schedule a background long running task, currently only available on iOS.
-  ///
-  /// Processing tasks are for long processes like data processing and app maintenance.
-  /// Processing tasks can run for minutes, but the system can interrupt these.
-  /// Processing tasks run only when the device is idle. iOS might terminate any
-  /// running background processing tasks when the user starts using the device.
-  /// However background refresh tasks aren’t affected.
-  ///
-  /// For iOS see Apple docs:
-  /// [iOS 13+ Using background tasks to update your app](https://developer.apple.com/documentation/uikit/app_and_environment/scenes/preparing_your_ui_to_run_in_the_background/using_background_tasks_to_update_your_app/)
-  ///
-  /// [iOS 13+ BGProcessingTask](https://developer.apple.com/documentation/backgroundtasks/bgprocessingtask/)
-  Future<void> registerProcessingTask(
-    final String uniqueName,
-    final String taskName, {
-    final Duration initialDelay = Duration.zero,
-
-    /// Only partially supported on iOS.
-    /// See [Constraints] for details.
-    final Constraints? constraints,
-  }) async =>
-      await _foregroundChannel.invokeMethod(
-        "registerProcessingTask",
-        JsonMapperHelper.toRegisterMethodArgument(
-          isInDebugMode: _isInDebugMode,
-          uniqueName: uniqueName,
-          taskName: taskName,
-          initialDelay: initialDelay,
-          constraints: constraints,
-        ),
-      );
-
   /// Check whether background app refresh is enabled. If it is not enabled you
   /// might ask the user to enable it in app settings.
   ///
