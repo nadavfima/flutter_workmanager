@@ -234,7 +234,6 @@ class Workmanager {
   /// the [flexInterval] If the nature of the work is time-sensitive, you can configure the PeriodicWorkRequest to run in a flexible period at each interval.
   /// https://developer.android.com/develop/background-work/background-tasks/persistent/getting-started/define-work?hl=pt-br#flexible_run_intervals
   /// The [inputData] is the input data for task. Valid value types are: int, bool, double, String and their list
-
   /// Unlike Android, you cannot set [frequency] for iOS here rather you have to set in `AppDelegate.swift` while registering the task.
   /// The [inputData] is the input data for task. Valid value types are: int, bool, double, String and their list. It is not supported on iOS.
   ///
@@ -274,6 +273,74 @@ class Workmanager {
           inputData: inputData,
         ),
       );
+
+  /// Schedule a background long running task, currently only available on iOS.
+  ///
+  /// Processing tasks are for long processes like data processing and app maintenance.
+  /// Processing tasks can run for minutes, but the system can interrupt these.
+  /// Processing tasks run only when the device is idle. iOS might terminate any
+  /// running background processing tasks when the user starts using the device.
+  /// However background refresh tasks aren’t affected.
+  ///
+  /// For iOS see Apple docs:
+  /// [iOS 13+ Using background tasks to update your app](https://developer.apple.com/documentation/uikit/app_and_environment/scenes/preparing_your_ui_to_run_in_the_background/using_background_tasks_to_update_your_app/)
+  ///
+  /// [iOS 13+ BGProcessingTask](https://developer.apple.com/documentation/backgroundtasks/bgprocessingtask/)
+  Future<void> registerProcessingTask(
+    final String uniqueName,
+    final String taskName, {
+    final Duration initialDelay = Duration.zero,
+
+    /// Only partially supported on iOS.
+    /// See [Constraints] for details.
+    final Constraints? constraints,
+  }) async =>
+      await _foregroundChannel.invokeMethod(
+        "registerProcessingTask",
+        JsonMapperHelper.toRegisterMethodArgument(
+          isInDebugMode: _isInDebugMode,
+          uniqueName: uniqueName,
+          taskName: taskName,
+          initialDelay: initialDelay,
+          constraints: constraints,
+        ),
+      );
+
+  /// Check whether background app refresh is enabled. If it is not enabled you
+  /// might ask the user to enable it in app settings.
+  ///
+  /// On iOS user can disable Background App Refresh permission anytime, hence
+  /// background tasks can only run if user has granted the permission. Parental
+  /// controls can also restrict it.
+  ///
+  /// Only available on iOS.
+  Future<BackgroundRefreshPermissionState>
+      checkBackgroundRefreshPermission() async {
+    try {
+      var result = await _foregroundChannel.invokeMethod<Object>(
+        'checkBackgroundRefreshPermission',
+        JsonMapperHelper.toInitializeMethodArgument(
+          isInDebugMode: _isInDebugMode,
+          callbackHandle: 0,
+        ),
+      );
+      switch (result.toString()) {
+        case 'available':
+          return BackgroundRefreshPermissionState.available;
+        case 'denied':
+          return BackgroundRefreshPermissionState.denied;
+        case 'restricted':
+          return BackgroundRefreshPermissionState.restricted;
+        case 'unknown':
+          return BackgroundRefreshPermissionState.unknown;
+      }
+    } catch (e) {
+      // TODO not sure it's a good idea to handle and print a message
+      print("Could not retrieve BackgroundRefreshPermissionState " +
+          e.toString());
+    }
+    return BackgroundRefreshPermissionState.unknown;
+  }
 
   /// Checks whether a period task is scheduled by its [uniqueName].
   ///

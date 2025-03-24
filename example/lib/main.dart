@@ -125,9 +125,11 @@ class _MyAppState extends State<MyApp> {
                   child: Text("Start the Flutter background service"),
                   onPressed: () async {
                     if (Platform.isIOS) {
-                      final status = await Permission.backgroundRefresh.status;
-                      if (status != PermissionStatus.granted) {
-                        _showNoPermission(context, status);
+                      final hasPermission = await Workmanager()
+                          .checkBackgroundRefreshPermission();
+                      if (hasPermission !=
+                          BackgroundRefreshPermissionState.available) {
+                        _showNoPermission(context, hasPermission);
                         return;
                       }
                     }
@@ -351,7 +353,8 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  void _showNoPermission(BuildContext context, PermissionStatus hasPermission) {
+  void _showNoPermission(
+      BuildContext context, BackgroundRefreshPermissionState hasPermission) {
     showDialog(
       context: context,
       builder: (BuildContext context) {

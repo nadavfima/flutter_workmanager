@@ -24,6 +24,7 @@ class BackgroundTaskOperation: Operation {
         self.backgroundMode = backgroundMode
     }
 
+    
     override func main() {
         let semaphore = DispatchSemaphore(value: 0)
         let worker = BackgroundWorker(mode: self.backgroundMode,
